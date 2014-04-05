@@ -172,3 +172,8 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+/plugin.video.ecdownloadsorter/resources/lib/*.pyc
+/plugin.video.ecdownloadsorter/resources/lib/*.pyo
+/plugin.video.ecdownloadsorter/test.py
+/*.pyproj
+/*.sln
