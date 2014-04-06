@@ -38,7 +38,7 @@ downloads = ftp.listContent()
 dbpath = os.path.join(xbmc.translatePath(ADDON.getAddonInfo('profile')), "settings.db")
 db = ecdb(dbpath)
 db.createTable()
-db.cleanIgnored(downloads) #Not implemented
+db.cleanIgnored(downloads)
 
 if "index" in PARAMS:
     ret = DIALOG.select("Choose type", sorted(types, key = types.get))
