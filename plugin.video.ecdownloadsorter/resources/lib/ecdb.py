@@ -14,7 +14,6 @@ class ecdb:
         c = self.__conn.cursor()
         c.execute("SELECT name FROM ignored;")
         result = c.fetchall()
-        print result
         c.close()
         return result
 

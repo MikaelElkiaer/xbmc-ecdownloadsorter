@@ -27,51 +27,63 @@ if ADDON.getSetting("path") == "":
     ADDON.openSettings()
 
 path = ADDON.getSetting("path")
+username = ADDON.getSetting("username")
+password = ADDON.getSetting("password")
 downloadDir = "download"
 types = {"movie": 0, "tv show": 1, "sports": 2, "ignore": 3}
 
-ftp = ecftp(path, ADDON.getSetting("username"), ADDON.getSetting("password"), downloadDir)
-ftp.login()
-
-downloads = ftp.listContent()
-
 dbpath = os.path.join(xbmc.translatePath(ADDON.getAddonInfo('profile')), "settings.db")
-db = ecdb(dbpath)
-db.createTable()
-db.cleanIgnored(downloads)
 
 if "index" in PARAMS:
     ret = DIALOG.select("Choose type", sorted(types, key = types.get))
+
     index = int(PARAMS["index"][0])
+
+    ftp = ecftp(path, username, password, downloadDir)
+    ftp.login()
+
+    downloads = ftp.listContent()
+
     file = downloads[index]
     
     if ret == types["movie"]:
         ftp.move(file, ["media", "movies"])
         xbmc.executebuiltin("UpdateLibrary(video,nfs://%s/volume2/%s/%s/)" % (path, "media/movies", file) )
+        ftp.logout()
     if ret == types["tv show"]:
         pass #Not implemented
     if ret == types["sports"]:
         ftp.move(file, ["media", "sport"])
+        ftp.logout()
     if ret == types["ignore"]:
+        db = ecdb(dbpath)
         db.addIgnored(file)
+        db.close()
 
-else:
-    downloads = ftp.listContent()
-    ignored = db.getIgnored()
+ftp = ecftp(path, username, password, downloadDir)
+ftp.login()
 
-    for i in range(0,len(downloads)):
-        isIgnored = False
+downloads = ftp.listContent()
 
-        for k in ignored:
-            if k[0] == downloads[i]:
-                isIgnored = True
+db = ecdb(dbpath)
+db.createTable()
+db.cleanIgnored(downloads)
+
+ignored = db.getIgnored()
+
+for i in range(0, len(downloads)):
+    isIgnored = False
+
+    for k in ignored:
+        if k[0] == downloads[i]:
+            isIgnored = True
     
-        if not isIgnored:
-            listitem = xbmcgui.ListItem(downloads[i], iconImage=ICON, thumbnailImage=ICON)
-            xbmcplugin.addDirectoryItem(HANDLE, PATH + "?index=%d" % i, listitem, isFolder=True)
+    if not isIgnored:
+        listitem = xbmcgui.ListItem(downloads[i])
+        xbmcplugin.addDirectoryItem(HANDLE, PATH + "?index=%d" % i, listitem, isFolder=True, totalItems=len(downloads))
 
-    xbmcplugin.endOfDirectory(HANDLE)
-
-ftp.logout()
+xbmcplugin.endOfDirectory(HANDLE, updateListing=True)
 
 db.close()
+
+ftp.logout()
